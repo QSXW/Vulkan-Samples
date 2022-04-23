@@ -1,4 +1,4 @@
-/* Copyright (c) 2019-2021, Arm Limited and Contributors
+/* Copyright (c) 2019-2022, Arm Limited and Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -32,13 +32,13 @@ namespace vkb
 class DirectWindow : public Window
 {
   public:
-	DirectWindow(Platform &platform, uint32_t width = 1280, uint32_t height = 720);
+	DirectWindow(Platform *platform, const Window::Properties &properties);
 
 	virtual ~DirectWindow();
 
 	virtual VkSurfaceKHR create_surface(Instance &instance) override;
 
-	virtual vk::SurfaceKHR create_surface(vk::Instance instance, vk::PhysicalDevice physical_device) override;
+	virtual VkSurfaceKHR create_surface(VkInstance instance, VkPhysicalDevice physical_device) override;
 
 	virtual bool should_close() override;
 
@@ -54,11 +54,9 @@ class DirectWindow : public Window
 	uint32_t find_compatible_plane(VkPhysicalDevice phys_dev, VkDisplayKHR display,
 	                               const std::vector<VkDisplayPlanePropertiesKHR> &plane_properties);
 
-	uint32_t find_compatible_plane(vk::PhysicalDevice phys_dev, vk::DisplayKHR display,
-	                               const std::vector<vk::DisplayPlanePropertiesKHR> &plane_properties) const;
-
   private:
 	mutable bool   keep_running = true;
+	Platform *     platform     = nullptr;
 	float          dpi;
 	int            tty_fd;
 	struct termios termio;

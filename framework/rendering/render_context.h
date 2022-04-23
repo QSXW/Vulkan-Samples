@@ -213,11 +213,11 @@ class RenderContext
 	/**
 	 * @brief Returns the format that the RenderTargets are created with within the RenderContext
 	 */
-	VkFormat get_format();
+	VkFormat get_format() const;
 
-	Swapchain &get_swapchain();
+	Swapchain const &get_swapchain() const;
 
-	VkExtent2D get_surface_extent() const;
+	VkExtent2D const &get_surface_extent() const;
 
 	uint32_t get_active_frame_index() const;
 
@@ -226,7 +226,7 @@ class RenderContext
 	/**
 	 * @brief Handles surface changes, only applicable if the render_context makes use of a swapchain
 	 */
-	virtual void handle_surface_changes();
+	virtual bool handle_surface_changes(bool force_update = false);
 
 	/**
 	 * @brief Returns the WSI acquire semaphore. Only to be used in very special circumstances.

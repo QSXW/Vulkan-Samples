@@ -19,6 +19,7 @@
 
 #include "common/helpers.h"
 #include "common/vk_common.h"
+#include "core/vulkan_resource.h"
 
 namespace vkb
 {
@@ -26,7 +27,7 @@ class Device;
 
 namespace core
 {
-class Buffer
+class Buffer : public VulkanResource<VkBuffer, VK_OBJECT_TYPE_BUFFER, const Device>
 {
   public:
 	/**
@@ -36,12 +37,14 @@ class Buffer
 	 * @param buffer_usage The usage flags for the VkBuffer
 	 * @param memory_usage The memory usage of the buffer
 	 * @param flags The allocation create flags
+	 * @param queue_family_indices optional queue family indices
 	 */
-	Buffer(Device &                 device,
-	       VkDeviceSize             size,
-	       VkBufferUsageFlags       buffer_usage,
-	       VmaMemoryUsage           memory_usage,
-	       VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_MAPPED_BIT);
+	Buffer(Device const &               device,
+	       VkDeviceSize                 size,
+	       VkBufferUsageFlags           buffer_usage,
+	       VmaMemoryUsage               memory_usage,
+	       VmaAllocationCreateFlags     flags                = VMA_ALLOCATION_CREATE_MAPPED_BIT,
+	       const std::vector<uint32_t> &queue_family_indices = {});
 
 	Buffer(const Buffer &) = delete;
 
@@ -53,9 +56,31 @@ class Buffer
 
 	Buffer &operator=(Buffer &&) = delete;
 
-	const Device &get_device() const;
+	template <typename T>
+	static std::vector<T> copy(std::unordered_map<std::string, vkb::core::Buffer> &buffers, const char *buffer_name)
+	{
+		auto iter = buffers.find(buffer_name);
+		if (iter == buffers.cend())
+		{
+			return {};
+		}
+		auto &         buffer = iter->second;
+		std::vector<T> out;
 
-	VkBuffer get_handle() const;
+		const size_t sz = buffer.get_size();
+		out.resize(sz / sizeof(T));
+		const bool already_mapped = buffer.get_data() != nullptr;
+		if (!already_mapped)
+		{
+			buffer.map();
+		}
+		memcpy(&out[0], buffer.get_data(), sz);
+		if (!already_mapped)
+		{
+			buffer.unmap();
+		}
+		return out;
+	}
 
 	const VkBuffer *get() const;
 
@@ -129,10 +154,6 @@ class Buffer
 	uint64_t get_device_address();
 
   private:
-	Device &device;
-
-	VkBuffer handle{VK_NULL_HANDLE};
-
 	VmaAllocation allocation{VK_NULL_HANDLE};
 
 	VkDeviceMemory memory{VK_NULL_HANDLE};

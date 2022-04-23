@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2021, Arm Limited and Contributors
+/* Copyright (c) 2018-2022, Arm Limited and Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -19,8 +19,8 @@
 
 namespace vkb
 {
-HeadlessWindow::HeadlessWindow(Platform &platform, uint32_t width, uint32_t height) :
-    Window(platform, width, height)
+HeadlessWindow::HeadlessWindow(const Window::Properties &properties) :
+    Window(properties)
 {
 }
 
@@ -29,9 +29,9 @@ VkSurfaceKHR HeadlessWindow::create_surface(Instance &instance)
 	return VK_NULL_HANDLE;
 }
 
-vk::SurfaceKHR HeadlessWindow::create_surface(vk::Instance, vk::PhysicalDevice)
+VkSurfaceKHR HeadlessWindow::create_surface(VkInstance, VkPhysicalDevice)
 {
-	return nullptr;
+	return VK_NULL_HANDLE;
 }
 
 bool HeadlessWindow::should_close()

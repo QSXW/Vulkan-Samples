@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021, Arm Limited and Contributors
+# Copyright (c) 2019-2022, Arm Limited and Contributors
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
 # Creates a list of the subdirectories within this folder
 scan_dirs(
@@ -56,12 +56,17 @@ set(ORDER_LIST
     "instancing"
     "compute_nbody"
     "terrain_tessellation"
+    "hlsl"
 
     #Extension Samples
+    "dynamic_rendering"
     "conservative_rasterization"
     "fragment_shading_rate"
+    "fragment_shading_rate_dynamic"
     "push_descriptors"
+    "ray_queries"
     "raytracing_basic"
+    "raytracing_extended"
     "raytracing_reflection"
     "timeline_semaphore"
     "synchronization_2"
@@ -87,15 +92,38 @@ set(ORDER_LIST
     "16bit_storage_input_output"
     "16bit_arithmetic"
     "async_compute"
+    "multi_draw_indirect"
+    "texture_compression_comparison"
+
+    #Tooling samples
+    "profiles"
 
     #HPP API Samples
-    "hpp_hello_triangle")
+    "hpp_hello_triangle"
+	"hpp_dynamic_uniform_buffers"
+	"hpp_texture_loading"
+	"hpp_hdr"
+	"hpp_instancing")
 
 # Orders the sample ids by the order list above
-order_sample_list(
-    INPUT ${TOTAL_SAMPLE_ID_LIST}
-    OUTPUT TOTAL_SAMPLE_ID_LIST
-    ORDER ${ORDER_LIST})
+set(ORDERED_LIST)
+list(REMOVE_DUPLICATES ORDER_LIST)
+
+# Add samples to ordered list based on the a predefined order
+foreach(SAMPLE_ID ${ORDER_LIST})
+    list(FIND ORDERED_LIST ${SAMPLE_ID} FOUND_SAMPLE)
+    if(NOT ${FOUND_SAMPLE} LESS 0)
+        list(APPEND ORDERED_LIST ${SAMPLE_ID})
+    endif()
+endforeach()
+
+# Add the remaining samples to the ordered list that are not in the predefined order
+foreach(SAMPLE_ID ${TOTAL_SAMPLE_ID_LIST})
+    list(FIND ORDERED_LIST ${SAMPLE_ID} FOUND_SAMPLE)
+    if(${FOUND_SAMPLE} LESS 0)
+        list(APPEND ORDERED_LIST ${SAMPLE_ID})
+    endif()
+endforeach()
 
 # Make sample list visible parent scope (required by vulkan_samples project)
-set(TOTAL_SAMPLE_ID_LIST ${TOTAL_SAMPLE_ID_LIST} PARENT_SCOPE)
+set(TOTAL_SAMPLE_ID_LIST ${ORDERED_LIST} PARENT_SCOPE)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2019-2020, Sascha Willems
+/* Copyright (c) 2019-2021, Sascha Willems
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -20,6 +20,8 @@
   */
 
 #include "compute_nbody.h"
+
+#include "benchmark_mode/benchmark_mode.h"
 
 ComputeNBody::ComputeNBody()
 {
@@ -285,7 +287,7 @@ void ComputeNBody::prepare_storage_buffers()
 	// Initial particle positions
 	std::vector<Particle> particle_buffer(num_particles);
 
-	std::default_random_engine      rnd_engine(is_benchmark_mode() ? 0 : (unsigned) time(nullptr));
+	std::default_random_engine      rnd_engine(platform->using_plugin<::plugins::BenchmarkMode>() ? 0 : (unsigned) time(nullptr));
 	std::normal_distribution<float> rnd_distribution(0.0f, 1.0f);
 
 	for (uint32_t i = 0; i < static_cast<uint32_t>(attractors.size()); i++)
@@ -871,10 +873,11 @@ void ComputeNBody::render(float delta_time)
 	}
 }
 
-void ComputeNBody::resize(const uint32_t width, const uint32_t height)
+bool ComputeNBody::resize(const uint32_t width, const uint32_t height)
 {
 	ApiVulkanSample::resize(width, height);
 	update_graphics_uniform_buffers();
+	return true;
 }
 
 std::unique_ptr<vkb::Application> create_compute_nbody()

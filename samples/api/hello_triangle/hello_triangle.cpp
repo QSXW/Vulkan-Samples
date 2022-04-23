@@ -183,8 +183,8 @@ void HelloTriangle::init_instance(Context &                        context,
 	active_instance_extensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_WIN32_KHR)
 	active_instance_extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_MACOS_MVK)
-	active_instance_extensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
+#elif defined(VK_USE_PLATFORM_METAL_EXT)
+	active_instance_extensions.push_back(VK_EXT_METAL_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
 	active_instance_extensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_XLIB_KHR)
@@ -1087,11 +1087,10 @@ bool HelloTriangle::prepare(vkb::Platform &platform)
 
 	vk_instance = std::make_unique<vkb::Instance>(context.instance);
 
-	context.surface = platform.get_window().create_surface(*vk_instance);
-
-	context.surface = platform.get_window().create_surface(*vk_instance);
-	context.swapchain_dimensions.width  = platform.get_window().get_width(),
-	context.swapchain_dimensions.height = platform.get_window().get_height(),
+	context.surface                     = platform.get_window().create_surface(*vk_instance);
+	auto &extent                        = platform.get_window().get_extent();
+	context.swapchain_dimensions.width  = extent.width;
+	context.swapchain_dimensions.height = extent.height;
 
 	init_device(context, {"VK_KHR_swapchain"});
 
@@ -1138,11 +1137,11 @@ void HelloTriangle::update(float delta_time)
 	}
 }
 
-void HelloTriangle::resize(const uint32_t, const uint32_t)
+bool HelloTriangle::resize(const uint32_t, const uint32_t)
 {
 	if (context.device == VK_NULL_HANDLE)
 	{
-		return;
+		return false;
 	}
 
 	VkSurfaceCapabilitiesKHR surface_properties;
@@ -1152,7 +1151,7 @@ void HelloTriangle::resize(const uint32_t, const uint32_t)
 	if (surface_properties.currentExtent.width == context.swapchain_dimensions.width &&
 	    surface_properties.currentExtent.height == context.swapchain_dimensions.height)
 	{
-		return;
+		return false;
 	}
 
 	vkDeviceWaitIdle(context.device);
@@ -1160,6 +1159,7 @@ void HelloTriangle::resize(const uint32_t, const uint32_t)
 
 	init_swapchain(context);
 	init_framebuffers(context);
+	return true;
 }
 
 std::unique_ptr<vkb::Application> create_hello_triangle()
